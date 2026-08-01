@@ -65,8 +65,9 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------ #
     # Email Delivery
     # ------------------------------------------------------------------ #
+    EMAIL_PROVIDER: str = "sendgrid"
     SENDGRID_API_KEY: Optional[str] = None
-    FROM_EMAIL: str = "hireflow@yourdomain.com"
+    FROM_EMAIL: str = "divyanshu.singh.0810@gmail.com"
 
     # ------------------------------------------------------------------ #
     # File Storage
