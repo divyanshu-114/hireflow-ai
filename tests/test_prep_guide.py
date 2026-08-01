@@ -12,10 +12,10 @@ Additional tests cover keyword inference, topic categorization, and edge cases.
 import pytest
 from src.agents.prep_guide_agent import PrepGuideAgent
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def agent():
@@ -25,6 +25,7 @@ def agent():
 # ---------------------------------------------------------------------------
 # Acceptance-criteria test cases (rounds)
 # ---------------------------------------------------------------------------
+
 
 class TestRoundsPrediction:
 
@@ -103,9 +104,9 @@ class TestRoundsPrediction:
             listing_type="internship",
         )
         assert result["source"] == "default"
-        assert 1 <= result["round_count"] <= 2, (
-            f"Internship default should be 1-2 rounds, got {result['round_count']}"
-        )
+        assert (
+            1 <= result["round_count"] <= 2
+        ), f"Internship default should be 1-2 rounds, got {result['round_count']}"
 
     def test_internship_keyword_inferred_capped_at_two(self, agent):
         """
@@ -122,9 +123,9 @@ class TestRoundsPrediction:
             company_stage="startup",
             listing_type="internship",
         )
-        assert result["round_count"] <= 2, (
-            f"Inferred internship rounds should be capped at 2, got {result['round_count']}"
-        )
+        assert (
+            result["round_count"] <= 2
+        ), f"Inferred internship rounds should be capped at 2, got {result['round_count']}"
 
     # -----------------------------------------------------------------------
     # Case 4: Full-time job mode - default 3 rounds
@@ -137,9 +138,9 @@ class TestRoundsPrediction:
             listing_type="job",
         )
         assert result["source"] == "default"
-        assert result["round_count"] == 3, (
-            f"Job default should be 3 rounds, got {result['round_count']}"
-        )
+        assert (
+            result["round_count"] == 3
+        ), f"Job default should be 3 rounds, got {result['round_count']}"
 
     # -----------------------------------------------------------------------
     # Keyword inference
@@ -222,6 +223,7 @@ class TestRoundsPrediction:
 # ---------------------------------------------------------------------------
 # Acceptance-criteria test cases (topic analysis)
 # ---------------------------------------------------------------------------
+
 
 class TestTopicAnalysis:
 
@@ -316,9 +318,9 @@ class TestTopicAnalysis:
         )
         all_skills = topics["strong"] + topics["moderate"] + topics["gaps"]
         # No duplicates within the output
-        assert len(all_skills) == len(set(s.lower() for s in all_skills)), (
-            "Skills should not appear in multiple buckets"
-        )
+        assert len(all_skills) == len(
+            set(s.lower() for s in all_skills)
+        ), "Skills should not appear in multiple buckets"
 
 
 # ===========================================================================
@@ -327,10 +329,10 @@ class TestTopicAnalysis:
 
 from unittest.mock import patch, MagicMock
 
-
 # ---------------------------------------------------------------------------
 # TestResourceFinder
 # ---------------------------------------------------------------------------
+
 
 class TestResourceFinder:
 
@@ -346,15 +348,22 @@ class TestResourceFinder:
         assert "LangChain" in resources
 
         for topic, links in resources.items():
-            assert 1 <= len(links) <= 3, f"Expected 1-3 links for {topic}, got {len(links)}"
+            assert (
+                1 <= len(links) <= 3
+            ), f"Expected 1-3 links for {topic}, got {len(links)}"
             for link in links:
                 assert "title" in link, "Resource missing 'title'"
                 assert "url" in link, "Resource missing 'url'"
                 assert "type" in link, "Resource missing 'type'"
-                assert link["url"].startswith("http"), f"URL looks invalid: {link['url']}"
-                assert link["type"] in ("docs", "video", "article", "course"), (
-                    f"Unknown resource type: {link['type']}"
-                )
+                assert link["url"].startswith(
+                    "http"
+                ), f"URL looks invalid: {link['url']}"
+                assert link["type"] in (
+                    "docs",
+                    "video",
+                    "article",
+                    "course",
+                ), f"Unknown resource type: {link['type']}"
 
     def test_resource_type_variety(self, agent):
         """Resources for a skill should ideally include a mix of types (docs/video/article)."""
@@ -368,7 +377,9 @@ class TestResourceFinder:
     # -----------------------------------------------------------------------
     def test_broken_tavily_falls_back_to_static(self, agent):
         """If Tavily raises an exception, find_resources falls back to static catalogue."""
-        with patch("builtins.__import__", side_effect=ImportError("tavily not installed")):
+        with patch(
+            "builtins.__import__", side_effect=ImportError("tavily not installed")
+        ):
             resources = agent.find_resources(["Docker"])
         assert "Docker" in resources
         assert len(resources["Docker"]) >= 1
@@ -379,7 +390,10 @@ class TestResourceFinder:
         mock_client.search.side_effect = Exception("Tavily API rate limit exceeded")
 
         with patch.dict("os.environ", {"TAVILY_API_KEY": "fake-key-for-test"}):
-            with patch("src.agents.prep_guide_agent.ResourceFinder._tavily_search", return_value=[]):
+            with patch(
+                "src.agents.prep_guide_agent.ResourceFinder._tavily_search",
+                return_value=[],
+            ):
                 resources = agent.find_resources(["Python"])
 
         assert "Python" in resources
@@ -387,7 +401,14 @@ class TestResourceFinder:
 
     def test_unknown_topic_returns_generic_fallback(self, agent):
         """An obscure skill not in the catalogue should return generic search links, not crash."""
-        resources = agent.find_resources(["XYZObscureFramework2099"])
+        # Hermetic: force the fallback path deterministically instead of hitting
+        # the live Tavily API (whose free tier can return relative /goto?url=...
+        # redirect paths that are not clickable links).
+        with patch(
+            "src.agents.prep_guide_agent.ResourceFinder._tavily_search",
+            return_value=[],
+        ):
+            resources = agent.find_resources(["XYZObscureFramework2099"])
         assert "XYZObscureFramework2099" in resources
         links = resources["XYZObscureFramework2099"]
         assert len(links) >= 1
@@ -406,23 +427,37 @@ class TestResourceFinder:
         resources = agent.find_resources(["TypeScript", "RAG"])
         for topic, links in resources.items():
             for link in links:
-                assert set(link.keys()) >= {"title", "url", "type"}, (
-                    f"Resource for {topic} missing required keys: {link}"
-                )
+                assert set(link.keys()) >= {
+                    "title",
+                    "url",
+                    "type",
+                }, f"Resource for {topic} missing required keys: {link}"
 
     def test_tavily_results_mapped_correctly(self, agent):
         """When Tavily returns results, they are mapped to the correct schema."""
         from src.agents.prep_guide_agent import ResourceFinder
 
         fake_results = [
-            {"title": "Docker Tutorial", "url": "https://docs.docker.com/get-started/", "type": "docs"},
-            {"title": "Docker YouTube", "url": "https://www.youtube.com/watch?v=abc", "type": "video"},
+            {
+                "title": "Docker Tutorial",
+                "url": "https://docs.docker.com/get-started/",
+                "type": "docs",
+            },
+            {
+                "title": "Docker YouTube",
+                "url": "https://www.youtube.com/watch?v=abc",
+                "type": "video",
+            },
         ]
 
         # Patch _tavily_search on the class so the instance picks it up
         with patch.object(ResourceFinder, "_tavily_search", return_value=fake_results):
             # Also give the finder a fake API key so it tries the Tavily path
-            with patch.object(ResourceFinder, "__init__", lambda self, **kw: setattr(self, "_api_key", "fake-key") or None):
+            with patch.object(
+                ResourceFinder,
+                "__init__",
+                lambda self, **kw: setattr(self, "_api_key", "fake-key") or None,
+            ):
                 resources = agent.find_resources(["Docker"])
 
         # Even with mock, structure must be correct
@@ -432,10 +467,49 @@ class TestResourceFinder:
             assert "url" in link
             assert "type" in link
 
+    def test_tavily_relative_goto_urls_are_never_returned(self, agent):
+        """
+        A /goto?url=... redirect path from Tavily must never reach the caller —
+        it is filtered out so the fallback supplies a valid clickable link.
+        This is the regression test for the flaky /goto URL failure.
+        """
+        from src.agents.prep_guide_agent import ResourceFinder
+
+        fake_results = [
+            {
+                "title": "Broken Redirect",
+                "url": "/goto?url=CAESaAHuR6pNnjD7uUBb3bBmjqW",
+                "type": "article",
+            },
+            {
+                "title": "Real Doc",
+                "url": "https://example.com/docs/xyz",
+                "type": "docs",
+            },
+        ]
+
+        with patch.object(ResourceFinder, "_tavily_search", return_value=fake_results):
+            with patch.object(
+                ResourceFinder,
+                "__init__",
+                lambda self, **kw: setattr(self, "_api_key", "fake-key") or None,
+            ):
+                resources = agent.find_resources(["XYZObscureFramework2099"])
+
+        links = resources["XYZObscureFramework2099"]
+        assert links, "Expected at least one valid fallback resource"
+        for link in links:
+            assert link["url"].startswith(
+                "http"
+            ), f"Non-http URL leaked through: {link['url']}"
+        # The broken redirect must never appear in the output
+        assert not any("/goto" in link["url"] for link in links)
+
 
 # ---------------------------------------------------------------------------
 # TestMockQuestionGenerator
 # ---------------------------------------------------------------------------
+
 
 class TestMockQuestionGenerator:
 
@@ -533,8 +607,12 @@ class TestMockQuestionGenerator:
             round_types=["technical", "hr"],
         )
         categories = {q["category"] for q in questions}
-        assert "technical" in categories, f"Missing technical category. Got: {categories}"
-        assert "behavioral" in categories, f"Missing behavioral category. Got: {categories}"
+        assert (
+            "technical" in categories
+        ), f"Missing technical category. Got: {categories}"
+        assert (
+            "behavioral" in categories
+        ), f"Missing behavioral category. Got: {categories}"
 
     def test_founder_round_generates_culture_questions(self, agent):
         """Founder round type should produce culture/vision questions."""
@@ -545,9 +623,18 @@ class TestMockQuestionGenerator:
             round_types=["founder"],
         )
         combined = " ".join(q["question"].lower() for q in questions)
-        culture_signals = ["company", "aibridge", "vision", "build", "industry", "problem"]
+        culture_signals = [
+            "company",
+            "aibridge",
+            "vision",
+            "build",
+            "industry",
+            "problem",
+        ]
         matched = any(sig in combined for sig in culture_signals)
-        assert matched, f"Expected culture questions, got: {[q['question'] for q in questions]}"
+        assert (
+            matched
+        ), f"Expected culture questions, got: {[q['question'] for q in questions]}"
 
     def test_no_duplicate_questions(self, agent):
         """No question should appear twice in the output."""
@@ -558,9 +645,9 @@ class TestMockQuestionGenerator:
             round_types=["technical", "hr", "founder"],
         )
         question_texts = [q["question"].lower() for q in questions]
-        assert len(question_texts) == len(set(question_texts)), (
-            "Duplicate questions found in output"
-        )
+        assert len(question_texts) == len(
+            set(question_texts)
+        ), "Duplicate questions found in output"
 
     def test_empty_jd_returns_generic_questions(self, agent):
         """Empty JD should not crash; returns generic questions."""
@@ -583,9 +670,11 @@ class TestMockQuestionGenerator:
         for q in questions:
             assert "question" in q, f"Missing 'question' key in: {q}"
             assert "category" in q, f"Missing 'category' key in: {q}"
-            assert q["category"] in ("technical", "behavioral", "design"), (
-                f"Unknown category: {q['category']}"
-            )
+            assert q["category"] in (
+                "technical",
+                "behavioral",
+                "design",
+            ), f"Unknown category: {q['category']}"
 
     def test_design_questions_generated_for_job(self, agent):
         """Job listing should include at least one design-category question."""
@@ -596,6 +685,6 @@ class TestMockQuestionGenerator:
             round_types=["technical", "hr"],
         )
         categories = {q["category"] for q in questions}
-        assert "design" in categories, (
-            f"Expected design questions for job listing. Got categories: {categories}"
-        )
+        assert (
+            "design" in categories
+        ), f"Expected design questions for job listing. Got categories: {categories}"

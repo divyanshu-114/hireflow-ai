@@ -23,8 +23,15 @@ logger = logging.getLogger(__name__)
 _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     {
         "keywords": [
-            "online test", "online assessment", "coding test", "aptitude test",
-            "hackerrank", "codility", "mcq", "written test", "assessment",
+            "online test",
+            "online assessment",
+            "coding test",
+            "aptitude test",
+            "hackerrank",
+            "codility",
+            "mcq",
+            "written test",
+            "assessment",
         ],
         "type": "online_assessment",
         "label": "Online Assessment",
@@ -38,8 +45,13 @@ _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     },
     {
         "keywords": [
-            "technical interview", "technical round", "tech round", "coding interview",
-            "system design", "technical screen", "technical discussion",
+            "technical interview",
+            "technical round",
+            "tech round",
+            "coding interview",
+            "system design",
+            "technical screen",
+            "technical discussion",
         ],
         "type": "technical",
         "label": "Technical Interview",
@@ -53,12 +65,21 @@ _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     },
     {
         "keywords": [
-            "founder round", "founder interview", "ceo round", "co-founder",
-            "leadership round", "executive round",
+            "founder round",
+            "founder interview",
+            "ceo round",
+            "co-founder",
+            "leadership round",
+            "executive round",
         ],
         "type": "founder",
         "label": "Founder / Leadership Round",
-        "focus": ["Culture fit", "Vision alignment", "Problem-solving mindset", "Motivation"],
+        "focus": [
+            "Culture fit",
+            "Vision alignment",
+            "Problem-solving mindset",
+            "Motivation",
+        ],
         "duration_minutes": 45,
         "tips": [
             "Research the company's mission, product, and recent news.",
@@ -68,12 +89,22 @@ _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     },
     {
         "keywords": [
-            "hr round", "hr interview", "human resources", "behavioral interview",
-            "culture fit", "cultural fit", "culture round",
+            "hr round",
+            "hr interview",
+            "human resources",
+            "behavioral interview",
+            "culture fit",
+            "cultural fit",
+            "culture round",
         ],
         "type": "hr",
         "label": "HR / Behavioral Round",
-        "focus": ["Communication", "Behavioral questions", "Career goals", "Culture fit"],
+        "focus": [
+            "Communication",
+            "Behavioral questions",
+            "Career goals",
+            "Culture fit",
+        ],
         "duration_minutes": 30,
         "tips": [
             "Use the STAR method (Situation, Task, Action, Result) for behavioral questions.",
@@ -83,11 +114,18 @@ _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     },
     {
         "keywords": [
-            "managerial round", "manager round", "hiring manager",
+            "managerial round",
+            "manager round",
+            "hiring manager",
         ],
         "type": "managerial",
         "label": "Managerial Round",
-        "focus": ["Team collaboration", "Past projects", "Ownership mindset", "Problem solving"],
+        "focus": [
+            "Team collaboration",
+            "Past projects",
+            "Ownership mindset",
+            "Problem solving",
+        ],
         "duration_minutes": 45,
         "tips": [
             "Discuss specific contributions to team projects.",
@@ -97,12 +135,22 @@ _ROUND_TYPE_PATTERNS: List[Dict[str, Any]] = [
     },
     {
         "keywords": [
-            "portfolio review", "design round", "case study", "take-home", "assignment",
-            "project round", "portfolio",
+            "portfolio review",
+            "design round",
+            "case study",
+            "take-home",
+            "assignment",
+            "project round",
+            "portfolio",
         ],
         "type": "portfolio_case",
         "label": "Portfolio / Case Study Round",
-        "focus": ["Project walkthrough", "Design decisions", "Problem framing", "Communication"],
+        "focus": [
+            "Project walkthrough",
+            "Design decisions",
+            "Problem framing",
+            "Communication",
+        ],
         "duration_minutes": 60,
         "tips": [
             "Walk through your project end-to-end: problem, approach, outcome.",
@@ -346,7 +394,9 @@ class PrepGuideAgent:
     def _default_result(self, listing_type: str) -> Dict[str, Any]:
         """Return a sensible default when no process info is found."""
         rounds = (
-            _INTERNSHIP_DEFAULT_ROUNDS if listing_type == "internship" else _JOB_DEFAULT_ROUNDS
+            _INTERNSHIP_DEFAULT_ROUNDS
+            if listing_type == "internship"
+            else _JOB_DEFAULT_ROUNDS
         )
         return {
             "round_count": len(rounds),
@@ -397,7 +447,9 @@ class PrepGuideAgent:
                     rtype = pattern["type"]
                     if rtype not in seen_types:
                         seen_types.append(rtype)
-                        rounds.append(self._build_round_from_pattern(len(rounds) + 1, pattern))
+                        rounds.append(
+                            self._build_round_from_pattern(len(rounds) + 1, pattern)
+                        )
                     break  # Only match each pattern once
 
         if not rounds:
@@ -421,7 +473,9 @@ class PrepGuideAgent:
             return "hr"
         return "technical"  # sensible fallback
 
-    def _build_round(self, number: int, rtype: str, label_hint: str = "") -> Dict[str, Any]:
+    def _build_round(
+        self, number: int, rtype: str, label_hint: str = ""
+    ) -> Dict[str, Any]:
         """Build a round dict from a type key."""
         for pattern in _ROUND_TYPE_PATTERNS:
             if pattern["type"] == rtype:
@@ -465,89 +519,293 @@ from typing import Optional
 
 _STATIC_RESOURCES: Dict[str, List[Dict[str, str]]] = {
     "python": [
-        {"title": "Official Python Docs", "url": "https://docs.python.org/3/", "type": "docs"},
-        {"title": "Python Tutorial – freeCodeCamp", "url": "https://www.freecodecamp.org/news/the-python-handbook/", "type": "article"},
-        {"title": "Python Full Course – Programming with Mosh", "url": "https://www.youtube.com/watch?v=_uQrJ0TkZlc", "type": "video"},
+        {
+            "title": "Official Python Docs",
+            "url": "https://docs.python.org/3/",
+            "type": "docs",
+        },
+        {
+            "title": "Python Tutorial – freeCodeCamp",
+            "url": "https://www.freecodecamp.org/news/the-python-handbook/",
+            "type": "article",
+        },
+        {
+            "title": "Python Full Course – Programming with Mosh",
+            "url": "https://www.youtube.com/watch?v=_uQrJ0TkZlc",
+            "type": "video",
+        },
     ],
     "langchain": [
-        {"title": "LangChain Official Docs", "url": "https://python.langchain.com/docs/get_started/introduction", "type": "docs"},
-        {"title": "LangChain Crash Course – freeCodeCamp", "url": "https://www.youtube.com/watch?v=lG7Uxts9SXs", "type": "video"},
-        {"title": "LangChain Conceptual Guide", "url": "https://python.langchain.com/docs/concepts/", "type": "docs"},
+        {
+            "title": "LangChain Official Docs",
+            "url": "https://python.langchain.com/docs/get_started/introduction",
+            "type": "docs",
+        },
+        {
+            "title": "LangChain Crash Course – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=lG7Uxts9SXs",
+            "type": "video",
+        },
+        {
+            "title": "LangChain Conceptual Guide",
+            "url": "https://python.langchain.com/docs/concepts/",
+            "type": "docs",
+        },
     ],
     "langgraph": [
-        {"title": "LangGraph Official Docs", "url": "https://langchain-ai.github.io/langgraph/", "type": "docs"},
-        {"title": "LangGraph Tutorial", "url": "https://langchain-ai.github.io/langgraph/tutorials/", "type": "docs"},
-        {"title": "Build Agentic Apps with LangGraph", "url": "https://www.youtube.com/watch?v=R8KB-Zcynxc", "type": "video"},
+        {
+            "title": "LangGraph Official Docs",
+            "url": "https://langchain-ai.github.io/langgraph/",
+            "type": "docs",
+        },
+        {
+            "title": "LangGraph Tutorial",
+            "url": "https://langchain-ai.github.io/langgraph/tutorials/",
+            "type": "docs",
+        },
+        {
+            "title": "Build Agentic Apps with LangGraph",
+            "url": "https://www.youtube.com/watch?v=R8KB-Zcynxc",
+            "type": "video",
+        },
     ],
     "typescript": [
-        {"title": "TypeScript Official Docs", "url": "https://www.typescriptlang.org/docs/", "type": "docs"},
-        {"title": "TypeScript Handbook", "url": "https://www.typescriptlang.org/docs/handbook/intro.html", "type": "docs"},
-        {"title": "TypeScript Course – freeCodeCamp", "url": "https://www.youtube.com/watch?v=30LWjhZzg50", "type": "video"},
+        {
+            "title": "TypeScript Official Docs",
+            "url": "https://www.typescriptlang.org/docs/",
+            "type": "docs",
+        },
+        {
+            "title": "TypeScript Handbook",
+            "url": "https://www.typescriptlang.org/docs/handbook/intro.html",
+            "type": "docs",
+        },
+        {
+            "title": "TypeScript Course – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=30LWjhZzg50",
+            "type": "video",
+        },
     ],
     "docker": [
-        {"title": "Docker Official Docs", "url": "https://docs.docker.com/get-started/", "type": "docs"},
-        {"title": "Docker Tutorial for Beginners", "url": "https://www.youtube.com/watch?v=3c-iBn73dDE", "type": "video"},
-        {"title": "Docker Curriculum", "url": "https://docker-curriculum.com/", "type": "article"},
+        {
+            "title": "Docker Official Docs",
+            "url": "https://docs.docker.com/get-started/",
+            "type": "docs",
+        },
+        {
+            "title": "Docker Tutorial for Beginners",
+            "url": "https://www.youtube.com/watch?v=3c-iBn73dDE",
+            "type": "video",
+        },
+        {
+            "title": "Docker Curriculum",
+            "url": "https://docker-curriculum.com/",
+            "type": "article",
+        },
     ],
     "rag": [
-        {"title": "RAG Explained – LangChain Blog", "url": "https://blog.langchain.dev/retrieval-augmented-generation-rag/", "type": "article"},
-        {"title": "RAG from Scratch – freeCodeCamp", "url": "https://www.youtube.com/watch?v=sVcwVQRHIc8", "type": "video"},
-        {"title": "LangChain RAG Tutorial", "url": "https://python.langchain.com/docs/tutorials/rag/", "type": "docs"},
+        {
+            "title": "RAG Explained – LangChain Blog",
+            "url": "https://blog.langchain.dev/retrieval-augmented-generation-rag/",
+            "type": "article",
+        },
+        {
+            "title": "RAG from Scratch – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=sVcwVQRHIc8",
+            "type": "video",
+        },
+        {
+            "title": "LangChain RAG Tutorial",
+            "url": "https://python.langchain.com/docs/tutorials/rag/",
+            "type": "docs",
+        },
     ],
     "fastapi": [
-        {"title": "FastAPI Official Docs", "url": "https://fastapi.tiangolo.com/", "type": "docs"},
-        {"title": "FastAPI Full Course", "url": "https://www.youtube.com/watch?v=7t2alSnE2-I", "type": "video"},
-        {"title": "FastAPI Tutorial – Real Python", "url": "https://realpython.com/fastapi-python-web-apis/", "type": "article"},
+        {
+            "title": "FastAPI Official Docs",
+            "url": "https://fastapi.tiangolo.com/",
+            "type": "docs",
+        },
+        {
+            "title": "FastAPI Full Course",
+            "url": "https://www.youtube.com/watch?v=7t2alSnE2-I",
+            "type": "video",
+        },
+        {
+            "title": "FastAPI Tutorial – Real Python",
+            "url": "https://realpython.com/fastapi-python-web-apis/",
+            "type": "article",
+        },
     ],
     "react": [
-        {"title": "React Official Docs", "url": "https://react.dev/learn", "type": "docs"},
-        {"title": "React Full Course – freeCodeCamp", "url": "https://www.youtube.com/watch?v=4UZrsTqkcW4", "type": "video"},
-        {"title": "React Tutorial – W3Schools", "url": "https://www.w3schools.com/react/", "type": "article"},
+        {
+            "title": "React Official Docs",
+            "url": "https://react.dev/learn",
+            "type": "docs",
+        },
+        {
+            "title": "React Full Course – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=4UZrsTqkcW4",
+            "type": "video",
+        },
+        {
+            "title": "React Tutorial – W3Schools",
+            "url": "https://www.w3schools.com/react/",
+            "type": "article",
+        },
     ],
     "javascript": [
-        {"title": "MDN JavaScript Guide", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", "type": "docs"},
-        {"title": "JavaScript.info", "url": "https://javascript.info/", "type": "article"},
-        {"title": "JavaScript Full Course – freeCodeCamp", "url": "https://www.youtube.com/watch?v=jS4aFq5-91M", "type": "video"},
+        {
+            "title": "MDN JavaScript Guide",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide",
+            "type": "docs",
+        },
+        {
+            "title": "JavaScript.info",
+            "url": "https://javascript.info/",
+            "type": "article",
+        },
+        {
+            "title": "JavaScript Full Course – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=jS4aFq5-91M",
+            "type": "video",
+        },
     ],
     "sql": [
-        {"title": "SQL Tutorial – W3Schools", "url": "https://www.w3schools.com/sql/", "type": "article"},
-        {"title": "PostgreSQL Official Docs", "url": "https://www.postgresql.org/docs/", "type": "docs"},
-        {"title": "SQL Full Course – freeCodeCamp", "url": "https://www.youtube.com/watch?v=HXV3zeQKqGY", "type": "video"},
+        {
+            "title": "SQL Tutorial – W3Schools",
+            "url": "https://www.w3schools.com/sql/",
+            "type": "article",
+        },
+        {
+            "title": "PostgreSQL Official Docs",
+            "url": "https://www.postgresql.org/docs/",
+            "type": "docs",
+        },
+        {
+            "title": "SQL Full Course – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=HXV3zeQKqGY",
+            "type": "video",
+        },
     ],
     "machine learning": [
-        {"title": "ML Course – fast.ai", "url": "https://course.fast.ai/", "type": "course"},
-        {"title": "Scikit-learn Docs", "url": "https://scikit-learn.org/stable/user_guide.html", "type": "docs"},
-        {"title": "ML Crash Course – Google", "url": "https://developers.google.com/machine-learning/crash-course", "type": "course"},
+        {
+            "title": "ML Course – fast.ai",
+            "url": "https://course.fast.ai/",
+            "type": "course",
+        },
+        {
+            "title": "Scikit-learn Docs",
+            "url": "https://scikit-learn.org/stable/user_guide.html",
+            "type": "docs",
+        },
+        {
+            "title": "ML Crash Course – Google",
+            "url": "https://developers.google.com/machine-learning/crash-course",
+            "type": "course",
+        },
     ],
     "deep learning": [
-        {"title": "Deep Learning Specialization – Coursera", "url": "https://www.coursera.org/specializations/deep-learning", "type": "course"},
-        {"title": "fast.ai Deep Learning Course", "url": "https://course.fast.ai/", "type": "course"},
-        {"title": "PyTorch Official Tutorials", "url": "https://pytorch.org/tutorials/", "type": "docs"},
+        {
+            "title": "Deep Learning Specialization – Coursera",
+            "url": "https://www.coursera.org/specializations/deep-learning",
+            "type": "course",
+        },
+        {
+            "title": "fast.ai Deep Learning Course",
+            "url": "https://course.fast.ai/",
+            "type": "course",
+        },
+        {
+            "title": "PyTorch Official Tutorials",
+            "url": "https://pytorch.org/tutorials/",
+            "type": "docs",
+        },
     ],
     "kubernetes": [
-        {"title": "Kubernetes Official Docs", "url": "https://kubernetes.io/docs/home/", "type": "docs"},
-        {"title": "Kubernetes Tutorial – freeCodeCamp", "url": "https://www.youtube.com/watch?v=X48VuDVv0do", "type": "video"},
-        {"title": "Kubernetes Crash Course", "url": "https://www.youtube.com/watch?v=s_o8dwzRlu4", "type": "video"},
+        {
+            "title": "Kubernetes Official Docs",
+            "url": "https://kubernetes.io/docs/home/",
+            "type": "docs",
+        },
+        {
+            "title": "Kubernetes Tutorial – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=X48VuDVv0do",
+            "type": "video",
+        },
+        {
+            "title": "Kubernetes Crash Course",
+            "url": "https://www.youtube.com/watch?v=s_o8dwzRlu4",
+            "type": "video",
+        },
     ],
     "aws": [
-        {"title": "AWS Getting Started", "url": "https://aws.amazon.com/getting-started/", "type": "docs"},
-        {"title": "AWS Free Training", "url": "https://explore.skillbuilder.aws/learn", "type": "course"},
-        {"title": "AWS Tutorial – freeCodeCamp", "url": "https://www.youtube.com/watch?v=SOTamWNgDKc", "type": "video"},
+        {
+            "title": "AWS Getting Started",
+            "url": "https://aws.amazon.com/getting-started/",
+            "type": "docs",
+        },
+        {
+            "title": "AWS Free Training",
+            "url": "https://explore.skillbuilder.aws/learn",
+            "type": "course",
+        },
+        {
+            "title": "AWS Tutorial – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=SOTamWNgDKc",
+            "type": "video",
+        },
     ],
     "git": [
-        {"title": "Git Official Docs", "url": "https://git-scm.com/doc", "type": "docs"},
-        {"title": "Pro Git Book (free)", "url": "https://git-scm.com/book/en/v2", "type": "article"},
-        {"title": "Git & GitHub Crash Course – Traversy Media", "url": "https://www.youtube.com/watch?v=SWYqp7iY_Tc", "type": "video"},
+        {
+            "title": "Git Official Docs",
+            "url": "https://git-scm.com/doc",
+            "type": "docs",
+        },
+        {
+            "title": "Pro Git Book (free)",
+            "url": "https://git-scm.com/book/en/v2",
+            "type": "article",
+        },
+        {
+            "title": "Git & GitHub Crash Course – Traversy Media",
+            "url": "https://www.youtube.com/watch?v=SWYqp7iY_Tc",
+            "type": "video",
+        },
     ],
     "system design": [
-        {"title": "System Design Primer – GitHub", "url": "https://github.com/donnemartin/system-design-primer", "type": "article"},
-        {"title": "System Design Interview – Alex Xu (free summary)", "url": "https://bytebytego.com/courses/system-design-interview", "type": "course"},
-        {"title": "System Design Concepts – freeCodeCamp", "url": "https://www.youtube.com/watch?v=FSR1s2b-l_I", "type": "video"},
+        {
+            "title": "System Design Primer – GitHub",
+            "url": "https://github.com/donnemartin/system-design-primer",
+            "type": "article",
+        },
+        {
+            "title": "System Design Interview – Alex Xu (free summary)",
+            "url": "https://bytebytego.com/courses/system-design-interview",
+            "type": "course",
+        },
+        {
+            "title": "System Design Concepts – freeCodeCamp",
+            "url": "https://www.youtube.com/watch?v=FSR1s2b-l_I",
+            "type": "video",
+        },
     ],
     "multi-agent": [
-        {"title": "LangGraph Multi-Agent Tutorial", "url": "https://langchain-ai.github.io/langgraph/tutorials/multi_agent/multi-agent-collaboration/", "type": "docs"},
-        {"title": "Agentic AI Overview – LangChain Blog", "url": "https://blog.langchain.dev/what-is-an-agent/", "type": "article"},
-        {"title": "Building Multi-Agent Systems", "url": "https://www.youtube.com/watch?v=hvAPnpSfSGo", "type": "video"},
+        {
+            "title": "LangGraph Multi-Agent Tutorial",
+            "url": "https://langchain-ai.github.io/langgraph/tutorials/multi_agent/multi-agent-collaboration/",
+            "type": "docs",
+        },
+        {
+            "title": "Agentic AI Overview – LangChain Blog",
+            "url": "https://blog.langchain.dev/what-is-an-agent/",
+            "type": "article",
+        },
+        {
+            "title": "Building Multi-Agent Systems",
+            "url": "https://www.youtube.com/watch?v=hvAPnpSfSGo",
+            "type": "video",
+        },
     ],
 }
 
@@ -626,12 +884,17 @@ class ResourceFinder:
     """
 
     def __init__(self, tavily_api_key: Optional[str] = None) -> None:
-        self._api_key = tavily_api_key or os.environ.get("TAVILY_API_KEY") or self._load_from_settings()
+        self._api_key = (
+            tavily_api_key
+            or os.environ.get("TAVILY_API_KEY")
+            or self._load_from_settings()
+        )
 
     @staticmethod
     def _load_from_settings() -> Optional[str]:
         try:
             from src.config.settings import get_settings
+
             return get_settings().TAVILY_API_KEY
         except Exception:
             return None
@@ -658,36 +921,69 @@ class ResourceFinder:
         norm = topic.lower().strip()
 
         # 1. Try Tavily live search
-        if self._api_key and self._api_key.strip() not in ("", "your_tavily_api_key_here"):
-            live = self._tavily_search(topic, max_results)
+        if self._api_key and self._api_key.strip() not in (
+            "",
+            "your_tavily_api_key_here",
+        ):
+            live = self._sanitize_links(self._tavily_search(topic, max_results))
             if live:
                 return live[:max_results]
 
         # 2. Static catalogue lookup (exact or partial match)
-        static = self._static_lookup(norm, max_results)
+        static = self._sanitize_links(self._static_lookup(norm, max_results))
         if static:
             return static
 
         # 3. Generic fallback — always returns something
-        return self._generic_fallback(topic, max_results)
+        return self._sanitize_links(self._generic_fallback(topic, max_results))
+
+    @staticmethod
+    def _sanitize_links(
+        resources: List[Dict[str, str]],
+    ) -> List[Dict[str, str]]:
+        """
+        Filter out any resource whose url is not an absolute http(s) link.
+
+        This is the last line of defence so that find_resources() NEVER
+        returns a URL that doesn't start with http:// or https:// — e.g.
+        Tavily's free tier can return relative /goto?url=... redirect
+        paths, and malformed/relative URLs are useless as clickable links.
+        """
+        return [
+            r
+            for r in resources
+            if isinstance(r.get("url"), str)
+            and r["url"].startswith(("http://", "https://"))
+        ]
 
     def _tavily_search(self, topic: str, max_results: int) -> List[Dict[str, str]]:
         """Call Tavily search API and map results to our schema."""
         try:
             from tavily import TavilyClient  # type: ignore
+
             client = TavilyClient(api_key=self._api_key)
             query = f"learn {topic} tutorial documentation beginner guide"
-            response = client.search(query=query, max_results=max_results + 2, search_depth="basic")
+            response = client.search(
+                query=query, max_results=max_results + 2, search_depth="basic"
+            )
             results = []
             for r in response.get("results", []):
                 url = r.get("url", "")
                 title = r.get("title", url)
+                # Only keep absolute http(s) URLs. Tavily's free tier can return
+                # relative /goto?url=... redirect paths that are unusable as
+                # clickable links — dropping them lets the static/generic
+                # fallback supply valid resources instead.
+                if not url or not url.startswith(("http://", "https://")):
+                    continue
                 rtype = self._classify_url_type(url)
-                if url and title:
+                if title:
                     results.append({"title": title, "url": url, "type": rtype})
             return results[:max_results]
         except Exception as exc:
-            logger.warning("Tavily search failed for '%s': %s — falling back to static", topic, exc)
+            logger.warning(
+                "Tavily search failed for '%s': %s — falling back to static", topic, exc
+            )
             return []
 
     def _static_lookup(self, norm: str, max_results: int) -> List[Dict[str, str]]:
@@ -721,9 +1017,28 @@ class ResourceFinder:
         url_lower = url.lower()
         if any(x in url_lower for x in ["youtube.com", "youtu.be", "vimeo.com"]):
             return "video"
-        if any(x in url_lower for x in ["coursera", "udemy", "pluralsight", "edx", "skillbuilder", "fast.ai"]):
+        if any(
+            x in url_lower
+            for x in [
+                "coursera",
+                "udemy",
+                "pluralsight",
+                "edx",
+                "skillbuilder",
+                "fast.ai",
+            ]
+        ):
             return "course"
-        if any(x in url_lower for x in ["/docs/", "documentation", "reference", "api-reference", "devdocs"]):
+        if any(
+            x in url_lower
+            for x in [
+                "/docs/",
+                "documentation",
+                "reference",
+                "api-reference",
+                "devdocs",
+            ]
+        ):
             return "docs"
         return "article"
 
@@ -796,14 +1111,20 @@ class MockQuestionGenerator:
 
         # Technical questions — from JD skills
         if "technical" in round_types or "online_assessment" in round_types:
-            templates = _TECHNICAL_QUESTIONS_DEEP if listing_type == "job" else _TECHNICAL_QUESTIONS
+            templates = (
+                _TECHNICAL_QUESTIONS_DEEP
+                if listing_type == "job"
+                else _TECHNICAL_QUESTIONS
+            )
             tech_qs = self._build_tech_questions(
                 detected_skills, company_name, templates, max_per_category
             )
             questions.extend(tech_qs)
 
         # Behavioral questions — from JD skills
-        if any(rt in round_types for rt in ("hr", "behavioral", "technical", "managerial")):
+        if any(
+            rt in round_types for rt in ("hr", "behavioral", "technical", "managerial")
+        ):
             beh_qs = self._build_behavioral_questions(
                 detected_skills, company_name, max_per_category
             )
@@ -819,18 +1140,22 @@ class MockQuestionGenerator:
         # Founder / culture questions
         if "founder" in round_types:
             for q_tmpl in _FOUNDER_BEHAVIORAL[:max_per_category]:
-                questions.append({
-                    "question": q_tmpl.format(company=company_name),
-                    "category": "behavioral",
-                })
+                questions.append(
+                    {
+                        "question": q_tmpl.format(company=company_name),
+                        "category": "behavioral",
+                    }
+                )
 
         # HR questions
         if "hr" in round_types:
             for q_tmpl in _HR_BEHAVIORAL[:max_per_category]:
-                questions.append({
-                    "question": q_tmpl.format(company=company_name),
-                    "category": "behavioral",
-                })
+                questions.append(
+                    {
+                        "question": q_tmpl.format(company=company_name),
+                        "category": "behavioral",
+                    }
+                )
 
         # Deduplicate
         seen: set = set()
@@ -862,11 +1187,13 @@ class MockQuestionGenerator:
         questions = []
         for skill in skills[:limit]:
             tmpl = templates[len(questions) % len(templates)]
-            questions.append({
-                "question": tmpl.format(skill=skill, company=company),
-                "category": "technical",
-                "skill": skill,
-            })
+            questions.append(
+                {
+                    "question": tmpl.format(skill=skill, company=company),
+                    "category": "technical",
+                    "skill": skill,
+                }
+            )
             if len(questions) >= limit:
                 break
         return questions
@@ -880,11 +1207,13 @@ class MockQuestionGenerator:
         questions = []
         for i, skill in enumerate(skills[:limit]):
             tmpl = _BEHAVIORAL_QUESTIONS[i % len(_BEHAVIORAL_QUESTIONS)]
-            questions.append({
-                "question": tmpl.format(skill=skill, company=company),
-                "category": "behavioral",
-                "skill": skill,
-            })
+            questions.append(
+                {
+                    "question": tmpl.format(skill=skill, company=company),
+                    "category": "behavioral",
+                    "skill": skill,
+                }
+            )
         return questions
 
     def _build_design_questions(
@@ -896,17 +1225,20 @@ class MockQuestionGenerator:
         questions = []
         for i, skill in enumerate(skills[:limit]):
             tmpl = _DESIGN_QUESTIONS[i % len(_DESIGN_QUESTIONS)]
-            questions.append({
-                "question": tmpl.format(skill=skill, company=company),
-                "category": "design",
-                "skill": skill,
-            })
+            questions.append(
+                {
+                    "question": tmpl.format(skill=skill, company=company),
+                    "category": "design",
+                    "skill": skill,
+                }
+            )
         return questions
 
 
 # ---------------------------------------------------------------------------
 # Attach new methods to PrepGuideAgent
 # ---------------------------------------------------------------------------
+
 
 def _prep_guide_find_resources(
     self,
