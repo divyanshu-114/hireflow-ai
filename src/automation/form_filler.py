@@ -1,14 +1,19 @@
 import logging
-import time
 from typing import Dict, Any, List
-from playwright.sync_api import sync_playwright, Page, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import (
+    sync_playwright,
+    Page,
+    TimeoutError as PlaywrightTimeoutError,
+)
 
 from src.utils.llm_client import get_llm_client
 
 logger = logging.getLogger(__name__)
 
+
 class PermanentFailureError(Exception):
     pass
+
 
 class FormFiller:
     def __init__(self):
@@ -25,11 +30,7 @@ class FormFiller:
         Navigates to application_url, fills standard fields, answers free-text
         fields using LLM, uploads resume, and submits the form.
         """
-        result = {
-            "status": "pending",
-            "fields_filled": [],
-            "error_reason": None
-        }
+        result = {"status": "pending", "fields_filled": [], "error_reason": None}
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -37,7 +38,7 @@ class FormFiller:
             page = context.new_page()
 
             logger.info(f"Navigating to {application_url}")
-            
+
             # This can throw PlaywrightTimeoutError or Error (e.g. net::ERR_CONNECTION_REFUSED)
             page.goto(application_url, wait_until="networkidle")
 
@@ -48,7 +49,9 @@ class FormFiller:
             self._upload_resume(page, resume_path, result["fields_filled"])
 
             # Fill free text fields
-            self._fill_free_text_fields(page, user_profile, jd_text, result["fields_filled"])
+            self._fill_free_text_fields(
+                page, user_profile, jd_text, result["fields_filled"]
+            )
 
             # Submit form
             submit_success = self._submit_form(page)
@@ -57,20 +60,35 @@ class FormFiller:
                 result["status"] = "applied"
             else:
                 browser.close()
-                raise PermanentFailureError("Could not verify successful submission or submit button missing.")
+                raise PermanentFailureError(
+                    "Could not verify successful submission or submit button missing."
+                )
 
             browser.close()
 
         return result
 
-    def _fill_standard_fields(self, page: Page, user_profile: Dict[str, Any], fields_filled: List[str]):
+    def _fill_standard_fields(
+        self, page: Page, user_profile: Dict[str, Any], fields_filled: List[str]
+    ):
         """Fill common structured fields like name, email, phone, education, experience."""
         field_mappings = {
             "name": ["input[name*='name' i]", "input[id*='name' i]"],
-            "email": ["input[type='email']", "input[name*='email' i]", "input[id*='email' i]"],
-            "phone": ["input[type='tel']", "input[name*='phone' i]", "input[id*='phone' i]"],
-            "experience": ["input[type='number'][name*='experience' i]", "input[name*='experience' i]"],
-            "skills": ["input[name*='skill' i]", "input[id*='skill' i]"]
+            "email": [
+                "input[type='email']",
+                "input[name*='email' i]",
+                "input[id*='email' i]",
+            ],
+            "phone": [
+                "input[type='tel']",
+                "input[name*='phone' i]",
+                "input[id*='phone' i]",
+            ],
+            "experience": [
+                "input[type='number'][name*='experience' i]",
+                "input[name*='experience' i]",
+            ],
+            "skills": ["input[name*='skill' i]", "input[id*='skill' i]"],
         }
 
         for key, selectors in field_mappings.items():
@@ -78,7 +96,7 @@ class FormFiller:
                 value = str(user_profile[key])
                 if isinstance(user_profile[key], list):
                     value = ", ".join(user_profile[key])
-                
+
                 for selector in selectors:
                     try:
                         elements = page.locator(selector)
@@ -87,7 +105,9 @@ class FormFiller:
                             fields_filled.append(key)
                             break
                     except Exception as e:
-                        logger.debug(f"Failed to fill {key} with selector {selector}: {e}")
+                        logger.debug(
+                            f"Failed to fill {key} with selector {selector}: {e}"
+                        )
 
         # Handle selects (e.g. education)
         if "education" in user_profile and user_profile["education"]:
@@ -104,7 +124,6 @@ class FormFiller:
             except Exception as e:
                 logger.debug(f"Failed to fill education: {e}")
 
-
     def _upload_resume(self, page: Page, resume_path: str, fields_filled: List[str]):
         """Uploads the resume to any file input accepting PDF."""
         file_selectors = ["input[type='file'][name*='resume' i]", "input[type='file']"]
@@ -118,7 +137,13 @@ class FormFiller:
             except Exception as e:
                 logger.debug(f"Failed to upload resume with selector {selector}: {e}")
 
-    def _fill_free_text_fields(self, page: Page, user_profile: Dict[str, Any], jd_text: str, fields_filled: List[str]):
+    def _fill_free_text_fields(
+        self,
+        page: Page,
+        user_profile: Dict[str, Any],
+        jd_text: str,
+        fields_filled: List[str],
+    ):
         """Find textareas, use LLM to answer based on label/context."""
         try:
             textareas = page.locator("textarea")
@@ -133,10 +158,14 @@ class FormFiller:
                         label = page.locator(f"label[for='{label_id}']")
                         if label.count() > 0:
                             label_text = label.first.inner_text()
-                    
+
                     if not label_text:
                         # Fallback: get name or placeholder
-                        label_text = textarea.get_attribute("name") or textarea.get_attribute("placeholder") or "Additional information"
+                        label_text = (
+                            textarea.get_attribute("name")
+                            or textarea.get_attribute("placeholder")
+                            or "Additional information"
+                        )
 
                     prompt = (
                         f"You are a candidate applying for a job.\n"
@@ -145,7 +174,7 @@ class FormFiller:
                         f"The application form asks: '{label_text}'\n"
                         f"Write a concise, professional answer (2-4 sentences)."
                     )
-                    
+
                     answer = self.llm_client.chat(prompt)
                     textarea.fill(answer.strip())
                     fields_filled.append(f"textarea_{i}")
@@ -158,9 +187,9 @@ class FormFiller:
             "button[type='submit']",
             "input[type='submit']",
             "button:has-text('Submit')",
-            "button:has-text('Apply')"
+            "button:has-text('Apply')",
         ]
-        
+
         submitted = False
         for selector in submit_selectors:
             try:
@@ -178,10 +207,13 @@ class FormFiller:
         # Wait to see if success message appears or URL changes
         try:
             # For our test fixture, wait for the success message div to become visible
-            page.wait_for_selector("#success-message, .success, [class*='success']", state="visible", timeout=3000)
+            page.wait_for_selector(
+                "#success-message, .success, [class*='success']",
+                state="visible",
+                timeout=3000,
+            )
             return True
         except PlaywrightTimeoutError:
             # Maybe it navigated away? We could check if page.url changed significantly
             # For this simplified filler, returning False if we didn't see the success selector
             return False
-
