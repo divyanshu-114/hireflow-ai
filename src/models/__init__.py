@@ -9,3 +9,4 @@ from src.models.job import Job
 from src.models.application import Application, ApplicationStatusLog
 from src.models.prep_guide import PrepGuide
 from src.models.report import WeeklyReport
+from src.models.shortlist import Shortlist

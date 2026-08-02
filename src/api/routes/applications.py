@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -33,21 +33,27 @@ class ApplicationResponse(BaseModel):
 @router.get("/{user_id}", response_model=List[ApplicationResponse])
 def get_user_applications(
     user_id: int,
-    status: Optional[str] = Query(None, description="Filter by status (e.g., applied, needs_action, failed)"),
+    status: Optional[str] = Query(
+        None, description="Filter by status (e.g., applied, needs_action, failed)"
+    ),
     skip: int = Query(0, ge=0, description="Pagination skip"),
     limit: int = Query(50, ge=1, le=100, description="Pagination limit"),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Application, Job).join(Job, Application.job_id == Job.id).filter(Application.user_id == user_id)
+    query = (
+        db.query(Application, Job)
+        .join(Job, Application.job_id == Job.id)
+        .filter(Application.user_id == user_id)
+    )
 
     if status:
         query = query.filter(Application.status == status)
 
     query = query.order_by(Application.created_at.desc())
-    
+
     # Pagination
     results = query.offset(skip).limit(limit).all()
-    
+
     response = []
     for app, job in results:
         app_dict = {
@@ -61,11 +67,11 @@ def get_user_applications(
             "failure_reason": app.failure_reason,
             "applied_at": app.applied_at,
         }
-        
+
         # Include manual application URL for needs_action
         if app.status == "needs_action":
             app_dict["manual_application_url"] = job.application_url
-            
+
         response.append(ApplicationResponse(**app_dict))
-        
+
     return response

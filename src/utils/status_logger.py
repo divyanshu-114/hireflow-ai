@@ -27,5 +27,5 @@ class StatusLogger:
                 app.failure_reason = reason  # Store reason in failure_reason as well
             elif status == "applied":
                 app.applied_at = datetime.utcnow()
-                
+
         db.commit()

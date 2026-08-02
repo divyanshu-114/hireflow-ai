@@ -80,8 +80,14 @@ _TECH_SIGNALS: List[tuple] = [
 # ---------------------------------------------------------------------------
 
 _INTERVIEW_PATTERN_SIGNALS: List[tuple] = [
-    (r"coding\s+test|online\s+assessment|hackerrank|codility", "Online coding assessment"),
-    (r"technical\s+interview|tech\s+round|coding\s+interview", "Technical interview round"),
+    (
+        r"coding\s+test|online\s+assessment|hackerrank|codility",
+        "Online coding assessment",
+    ),
+    (
+        r"technical\s+interview|tech\s+round|coding\s+interview",
+        "Technical interview round",
+    ),
     (r"system\s+design", "System design round"),
     (r"founder\s+(interview|round)|ceo\s+round", "Founder / CEO round"),
     (r"hr\s+(round|interview)|behavioral\s+interview", "HR / Behavioral round"),
@@ -89,7 +95,10 @@ _INTERVIEW_PATTERN_SIGNALS: List[tuple] = [
     (r"pair\s+programming|live\s+coding", "Pair programming / live coding"),
     (r"case\s+study|portfolio\s+review", "Case study / portfolio review"),
     (r"(\d+)\s+round", "Multiple rounds ({n} rounds reported)"),
-    (r"two\s+round|three\s+round|four\s+round|five\s+round", "Multiple rounds mentioned"),
+    (
+        r"two\s+round|three\s+round|four\s+round|five\s+round",
+        "Multiple rounds mentioned",
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -97,13 +106,23 @@ _INTERVIEW_PATTERN_SIGNALS: List[tuple] = [
 # ---------------------------------------------------------------------------
 
 _STAGE_DEFAULT_PATTERNS: Dict[str, List[str]] = {
-    "seed": ["1-2 rounds (typical for early-stage)", "Founder interview likely", "Culture-fit focus"],
+    "seed": [
+        "1-2 rounds (typical for early-stage)",
+        "Founder interview likely",
+        "Culture-fit focus",
+    ],
     "startup": ["2-3 rounds", "Technical screen + founder/culture round"],
     "early_stage": ["2-3 rounds", "Online assessment + technical interview"],
     "growth": ["3-4 rounds", "Online assessment + technical + managerial + HR"],
     "late_stage": ["4-5 rounds", "Multiple technical rounds + system design + HR"],
-    "enterprise": ["4-6 rounds", "Multiple rounds including HR, technical, and panel interview"],
-    "public": ["4-5 rounds", "Structured interview process with rubric-based evaluation"],
+    "enterprise": [
+        "4-6 rounds",
+        "Multiple rounds including HR, technical, and panel interview",
+    ],
+    "public": [
+        "4-5 rounds",
+        "Structured interview process with rubric-based evaluation",
+    ],
     "bootstrapped": ["1-2 rounds", "Informal process, founder interview common"],
     "unknown": ["2-3 rounds (estimated)", "Process varies — check company career page"],
 }
@@ -200,11 +219,13 @@ class CompanyIntelAgent:
         if news_results:
             sources_checked.append("web_search:news")
             for r in news_results:
-                recent_news.append({
-                    "title": r.get("title", ""),
-                    "url": r.get("url", ""),
-                    "date": r.get("published_date", ""),
-                })
+                recent_news.append(
+                    {
+                        "title": r.get("title", ""),
+                        "url": r.get("url", ""),
+                        "date": r.get("published_date", ""),
+                    }
+                )
                 raw_texts.append(r.get("content", "") + " " + r.get("title", ""))
 
         # 3. Interview experience search (Glassdoor / AmbitionBox)
@@ -229,7 +250,9 @@ class CompanyIntelAgent:
             sources_checked.append("web_search:people")
             for r in people_results:
                 raw_texts.append(r.get("content", "") + " " + r.get("title", ""))
-                people = self._extract_key_people(r.get("content", "") + " " + r.get("title", ""))
+                people = self._extract_key_people(
+                    r.get("content", "") + " " + r.get("title", "")
+                )
                 key_people.extend(people)
 
         # 5. Website hint text
@@ -259,7 +282,9 @@ class CompanyIntelAgent:
             "interview_patterns": interview_patterns,
             "interview_patterns_note": patterns_note,
             "key_people": key_people,
-            "summary": self._build_summary(company_name, stage, tech_stack, interview_patterns),
+            "summary": self._build_summary(
+                company_name, stage, tech_stack, interview_patterns
+            ),
             "sources_checked": sources_checked,
             "researched_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -287,15 +312,17 @@ class CompanyIntelAgent:
     # Private helpers — search
     # ------------------------------------------------------------------
 
-    def _tavily_search(
-        self, query: str, max_results: int = 5
-    ) -> List[Dict[str, Any]]:
+    def _tavily_search(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
         """Run a Tavily web search. Returns [] on any failure."""
-        if not self._api_key or self._api_key.strip() in ("", "your_tavily_api_key_here"):
+        if not self._api_key or self._api_key.strip() in (
+            "",
+            "your_tavily_api_key_here",
+        ):
             logger.debug("No Tavily API key — skipping live search for: %s", query)
             return []
         try:
             from tavily import TavilyClient  # type: ignore
+
             client = TavilyClient(api_key=self._api_key)
             response = client.search(
                 query=query,
@@ -336,7 +363,9 @@ class CompanyIntelAgent:
         Returns (patterns_list, note_string).
         """
         if not review_texts:
-            default = _STAGE_DEFAULT_PATTERNS.get(stage, _STAGE_DEFAULT_PATTERNS["unknown"])
+            default = _STAGE_DEFAULT_PATTERNS.get(
+                stage, _STAGE_DEFAULT_PATTERNS["unknown"]
+            )
             note = (
                 f"No interview reviews found for {company_name}. "
                 "Showing typical patterns for this company stage."
@@ -357,16 +386,16 @@ class CompanyIntelAgent:
 
         if not patterns:
             # Text was found but no recognisable patterns → graceful fallback
-            default = _STAGE_DEFAULT_PATTERNS.get(stage, _STAGE_DEFAULT_PATTERNS["unknown"])
+            default = _STAGE_DEFAULT_PATTERNS.get(
+                stage, _STAGE_DEFAULT_PATTERNS["unknown"]
+            )
             note = (
                 f"Interview review content found for {company_name} but specific patterns "
                 "could not be extracted. Showing stage-based estimates."
             )
             return default, note
 
-        note = (
-            f"Interview patterns inferred from Glassdoor/AmbitionBox reviews for {company_name}."
-        )
+        note = f"Interview patterns inferred from Glassdoor/AmbitionBox reviews for {company_name}."
         return patterns, note
 
     def _extract_key_people(self, text: str) -> List[str]:
@@ -394,7 +423,9 @@ class CompanyIntelAgent:
         """Build a human-readable one-paragraph summary."""
         stage_label = stage.replace("_", " ").title()
         tech = ", ".join(tech_stack[:5]) if tech_stack else "not detected"
-        patterns = "; ".join(interview_patterns[:3]) if interview_patterns else "not detected"
+        patterns = (
+            "; ".join(interview_patterns[:3]) if interview_patterns else "not detected"
+        )
         return (
             f"{company_name} appears to be a {stage_label} company. "
             f"Detected tech stack includes: {tech}. "
@@ -436,6 +467,7 @@ class CompanyIntelAgent:
     def _load_from_settings() -> Optional[str]:
         try:
             from src.config.settings import get_settings
+
             return get_settings().TAVILY_API_KEY
         except Exception:
             return None
