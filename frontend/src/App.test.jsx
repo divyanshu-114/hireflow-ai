@@ -17,15 +17,17 @@ describe('App routing (acceptance criteria: all 5 routes)', () => {
     expect(screen.getByRole('heading', { name: /set up your profile/i })).toBeInTheDocument()
   })
 
-  it('renders the weekly plan stub at /weekly-plan', () => {
+  it('renders the weekly plan page at /weekly-plan', () => {
     renderAt('/weekly-plan')
     expect(screen.getByRole('heading', { name: /weekly plan/i })).toBeInTheDocument()
-    expect(screen.getByText(/issue 24/i)).toBeInTheDocument()
+    // No profile created in this browser → friendly prompt instead of a crash.
+    expect(screen.getByText(/create your profile/i)).toBeInTheDocument()
   })
 
-  it('renders the applications stub at /applications', () => {
+  it('renders the applications page at /applications', () => {
     renderAt('/applications')
     expect(screen.getByRole('heading', { name: /applications/i })).toBeInTheDocument()
+    expect(screen.getByText(/create your profile/i)).toBeInTheDocument()
   })
 
   it('renders the prep guide stub with the :id route param at /prep-guide/42', () => {

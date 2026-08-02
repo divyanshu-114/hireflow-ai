@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createProfile } from '../api/client.js'
+import { setCurrentUserId } from '../utils/currentUser.js'
 import ModeSelector from '../components/ModeSelector.jsx'
 import TagInput from '../components/TagInput.jsx'
 
@@ -83,6 +85,7 @@ function validate(form) {
 }
 
 export default function ProfilePage() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(INITIAL_FORM)
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle') // idle | submitting | success
@@ -156,6 +159,9 @@ export default function ProfilePage() {
         weeklyQuota: Number(form.weeklyQuota),
         resumeFile: form.resumeFile,
       })
+      // Issue 24: remember who's using the app so /weekly-plan and
+      // /applications know whose data to fetch on the next navigation.
+      setCurrentUserId(profile.id)
       setCreatedProfile(profile)
       setStatus('success')
     } catch (error) {
@@ -200,7 +206,10 @@ export default function ProfilePage() {
             </div>
           </dl>
           <div className="form__actions">
-            <button type="button" className="btn btn--primary" onClick={resetForm}>
+            <button type="button" className="btn btn--primary" onClick={() => navigate('/weekly-plan')}>
+              View my weekly plan
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={resetForm}>
               Set up another profile
             </button>
           </div>
