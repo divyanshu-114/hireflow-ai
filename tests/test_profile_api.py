@@ -282,3 +282,49 @@ def test_create_profile_duplicate_email(client: TestClient):
     resp2 = client.post("/profile", json=payload)
     assert resp2.status_code == 400, resp2.text
     assert "already registered" in resp2.json()["detail"].lower()
+
+
+# --------------------------------------------------------------------------- #
+# Test 8: CORS preflight — frontend on :3000 must be able to reach the API
+# --------------------------------------------------------------------------- #
+
+
+def test_cors_preflight_allows_frontend_origin(client: TestClient):
+    """OPTIONS preflight from the frontend origin returns 200 + CORS headers.
+
+    Regression test: the backend previously had no CORSMiddleware, so the
+    browser's preflight to POST /profile/upload got a 405 and the frontend
+    reported "We couldn't reach the server at http://localhost:8000".
+    """
+    response = client.options(
+        "/profile/upload",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert (
+        response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    )
+    assert "POST" in response.headers.get("access-control-allow-methods", "")
+
+
+# --------------------------------------------------------------------------- #
+# Test 9: CORS — disallowed origin is rejected
+# --------------------------------------------------------------------------- #
+
+
+def test_cors_blocks_unlisted_origin(client: TestClient):
+    """An origin not in ALLOWED_ORIGINS must not get CORS headers."""
+    response = client.options(
+        "/profile",
+        headers={
+            "Origin": "http://evil.example.com",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    # Starlette responds 400 to preflights from disallowed origins
+    assert response.status_code == 400
+    assert "access-control-allow-origin" not in response.headers

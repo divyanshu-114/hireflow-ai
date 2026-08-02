@@ -1,0 +1,129 @@
+import axios from 'axios'
+
+/**
+ * Base URL is configurable per environment. Vite exposes VITE_* vars via
+ * import.meta.env; anything else falls back to the local FastAPI backend.
+ */
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+
+/** Consistent, UI-friendly error shape thrown by every failed request. */
+export class ApiError extends Error {
+  constructor(message, { status = null, detail = null } = {}) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.detail = detail
+  }
+}
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 20000,
+  // NOTE: no global Content-Type header here on purpose. axios auto-sets
+  // `application/json` for plain-object payloads, and a hardcoded JSON default
+  // makes transformRequest stringify FormData uploads into a JSON body — which
+  // breaks multipart PDF uploads (the backend 422s with "file: Field required").
+})
+
+/** Pull a human-readable string out of whatever `detail` shape the API sent. */
+function detailToMessage(detail) {
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail) && detail.length > 0) {
+    // FastAPI validation errors: [{ loc: [...], msg, type }]
+    const first = detail[0]
+    const field = first.loc?.filter((part) => part !== 'body').at(-1) ?? 'input'
+    const msg = first.msg ?? 'is invalid'
+    return `${field}: ${msg}`
+  }
+  if (detail && typeof detail === 'object' && typeof detail.message === 'string') {
+    return detail.message
+  }
+  return null
+}
+
+/** Normalize any axios failure into an ApiError the UI can render safely. */
+function toApiError(error) {
+  if (error instanceof ApiError) return error
+
+  if (error.response) {
+    // The server answered with an error status.
+    const { status, data } = error.response
+    const detail = data?.detail
+    let message = detailToMessage(detail)
+
+    if (status === 400) {
+      message ??= "We couldn't save that. Please review the details and try again."
+    } else if (status === 404) {
+      message ??= "We couldn't find what you were looking for."
+    } else if (status === 422) {
+      message ??= 'Some of the information you entered is invalid. Please check the form.'
+    } else if (status >= 500) {
+      // Never leak stack traces or raw server internals to the user.
+      message = 'Something went wrong on our end. Please try again in a moment.'
+    }
+    return new ApiError(message, { status, detail })
+  }
+
+  if (error.request) {
+    // The request was sent but no response came back (e.g. backend is down).
+    return new ApiError(
+      `We couldn't reach the server at ${API_BASE_URL}. Make sure the backend is running and try again.`,
+    )
+  }
+
+  return new ApiError(error.message ?? 'Something went wrong. Please try again.')
+}
+
+api.interceptors.response.use((response) => response, (error) => Promise.reject(toApiError(error)))
+
+/**
+ * Create a user profile.
+ *
+ * When a resume file is provided the request is sent as multipart/form-data to
+ * POST /profile/upload (the backend's PDF intake route); otherwise it is sent
+ * as JSON to POST /profile. Returns the created profile object.
+ */
+export async function createProfile({
+  name,
+  email,
+  mode,
+  skills,
+  targetRoles = [],
+  preferredLocations = [],
+  weeklyQuota,
+  resumeFile,
+}) {
+  if (resumeFile) {
+    const formData = new FormData()
+    formData.append('file', resumeFile)
+    formData.append('name', name)
+    formData.append('email', email)
+    formData.append('mode', mode)
+    formData.append('skills', skills.join(', '))
+    formData.append('target_roles', targetRoles.join(', '))
+    formData.append('preferred_locations', preferredLocations.join(', '))
+    formData.append('weekly_quota', String(weeklyQuota))
+    // No manual Content-Type: with no global JSON default, the FormData stays
+    // intact and the browser sets multipart/form-data with the boundary.
+    const { data } = await api.post('/profile/upload', formData)
+    return data
+  }
+
+  const { data } = await api.post('/profile', {
+    name,
+    email,
+    mode,
+    skills,
+    target_roles: targetRoles,
+    preferred_locations: preferredLocations,
+    weekly_quota: weeklyQuota,
+    confirmation_mode: 'batch',
+  })
+  return data
+}
+
+/** Fetch a user profile by its database id. */
+export async function getProfile(userId) {
+  const { data } = await api.get(`/profile/${userId}`)
+  return data
+}
