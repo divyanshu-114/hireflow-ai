@@ -27,7 +27,9 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npm test -- --runInBand
+        # --runInBand is a Jest flag; Vitest's equivalent is --no-file-parallelism
+        # (run test files sequentially). Keeping the serial intent for CI stability.
+        run: npm test -- --no-file-parallelism
 
       - name: Build frontend
         working-directory: frontend
