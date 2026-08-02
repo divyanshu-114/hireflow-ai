@@ -287,18 +287,18 @@ class HiringShortlistAgent:
         # ``jd_text`` is part of the public signature for interface symmetry
         # with ``shortlist()``; scoring itself only needs the pre-extracted
         # ``jd_skills`` list, so the raw text is intentionally unused here.
-name_raw = applicant.get("name")
-name = str(name_raw).strip() if name_raw not in (None, "") else "Unknown"
+        name_raw = applicant.get("name")
+        name = str(name_raw).strip() if name_raw not in (None, "") else "Unknown"
 
-skills_raw = applicant.get("skills") or []
-if isinstance(skills_raw, str):
-    applicant_skills = [s.strip() for s in skills_raw.split(",") if s.strip()]
-elif isinstance(skills_raw, list):
-    applicant_skills = skills_raw
-else:
-    applicant_skills = []
+        skills_raw = applicant.get("skills") or []
+        if isinstance(skills_raw, str):
+            applicant_skills = [s.strip() for s in skills_raw.split(",") if s.strip()]
+        elif isinstance(skills_raw, list):
+            applicant_skills = skills_raw
+        else:
+            applicant_skills = []
 
-score, matches, gaps = _skill_overlap(applicant_skills, jd_skills)
+        score, matches, gaps = _skill_overlap(applicant_skills, jd_skills)
 
         return {
             "name": name,
