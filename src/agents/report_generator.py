@@ -20,10 +20,9 @@ import argparse
 import json
 import logging
 import os
-import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -302,22 +301,28 @@ class ReportGenerator:
             except Exception:
                 pass
 
-            apps.append({
-                "application_id": app.id,
-                "company": job.company_name,
-                "role": job.role_title,
-                "status": app.status,
-                "match_score": round((app.match_score or 0) * 100, 1) if app.match_score else 0,
-                "skill_gaps": gaps,
-                "skill_matches": matches,
-                "jd_skills": jd_skills,
-                "resume_path": app.resume_path or "",
-                "failure_reason": app.failure_reason or "",
-                "application_url": job.application_url,
-                "prep_guide_link": guide_link,
-                "listing_type": job.listing_type,
-                "applied_at": app.applied_at.isoformat() if app.applied_at else None,
-            })
+            apps.append(
+                {
+                    "application_id": app.id,
+                    "company": job.company_name,
+                    "role": job.role_title,
+                    "status": app.status,
+                    "match_score": (
+                        round((app.match_score or 0) * 100, 1) if app.match_score else 0
+                    ),
+                    "skill_gaps": gaps,
+                    "skill_matches": matches,
+                    "jd_skills": jd_skills,
+                    "resume_path": app.resume_path or "",
+                    "failure_reason": app.failure_reason or "",
+                    "application_url": job.application_url,
+                    "prep_guide_link": guide_link,
+                    "listing_type": job.listing_type,
+                    "applied_at": (
+                        app.applied_at.isoformat() if app.applied_at else None
+                    ),
+                }
+            )
 
         return apps
 
@@ -330,7 +335,9 @@ class ReportGenerator:
         applied = sum(1 for a in apps if a["status"] == "applied")
         failed = sum(1 for a in apps if a["status"] == "failed")
         needs_action = sum(1 for a in apps if a["status"] == "needs_action")
-        pending = sum(1 for a in apps if a["status"] in ("pending", "planned", "applying"))
+        pending = sum(
+            1 for a in apps if a["status"] in ("pending", "planned", "applying")
+        )
 
         scores = [a["match_score"] for a in apps if a["match_score"]]
         avg_score = round(sum(scores) / len(scores), 1) if scores else 0.0
@@ -405,12 +412,14 @@ class ReportGenerator:
         plan: List[Dict[str, Any]] = []
 
         for rank, (skill, count) in enumerate(gap_counter.most_common(3), start=1):
-            plan.append({
-                "rank": rank,
-                "skill": skill,
-                "frequency": count,
-                "reason": f"Appeared as a gap in {count} out of {len(apps)} JD(s) this week.",
-            })
+            plan.append(
+                {
+                    "rank": rank,
+                    "skill": skill,
+                    "frequency": count,
+                    "reason": f"Appeared as a gap in {count} out of {len(apps)} JD(s) this week.",
+                }
+            )
 
         return plan
 
@@ -425,10 +434,13 @@ class ReportGenerator:
         apps = report["applications"]
 
         # Top skills chips
-        top_skills_html = " ".join(
-            f'<span class="skill-chip">{s}</span>'
-            for s in insights.get("top_skills", [])
-        ) or "<em>Not enough data</em>"
+        top_skills_html = (
+            " ".join(
+                f'<span class="skill-chip">{s}</span>'
+                for s in insights.get("top_skills", [])
+            )
+            or "<em>Not enough data</em>"
+        )
 
         # Study plan
         study_items = []
@@ -438,9 +450,11 @@ class ReportGenerator:
                 f'<span class="rank">#{item["rank"]}</span>'
                 f'<div><strong>{item["skill"]}</strong>'
                 f'<br><small style="color:#666">{item["reason"]}</small></div>'
-                f'</div>'
+                f"</div>"
             )
-        study_plan_html = "\n".join(study_items) or "<p>No skill gaps identified — great job!</p>"
+        study_plan_html = (
+            "\n".join(study_items) or "<p>No skill gaps identified — great job!</p>"
+        )
 
         # Application rows
         rows = []
@@ -455,20 +469,24 @@ class ReportGenerator:
             gaps_html = ", ".join(app.get("skill_gaps", [])[:3]) or "—"
             resume = (
                 f'<a href="{app["resume_path"]}" target="_blank">Resume</a>'
-                if app.get("resume_path") else "—"
+                if app.get("resume_path")
+                else "—"
             )
             rows.append(
-                f'<tr>'
-                f'<td>{i}</td>'
+                f"<tr>"
+                f"<td>{i}</td>"
                 f'<td><strong>{app["company"]}</strong></td>'
                 f'<td>{app["role"]}</td>'
                 f'<td><span class="badge {badge_class}">{status.replace("_", " ").title()}</span></td>'
                 f'<td>{app["match_score"]}%</td>'
                 f'<td style="font-size:.8rem;color:#c0392b">{gaps_html}</td>'
-                f'<td>{resume}</td>'
-                f'</tr>'
+                f"<td>{resume}</td>"
+                f"</tr>"
             )
-        applications_rows = "\n".join(rows) or '<tr><td colspan="7" style="text-align:center;color:#999">No applications this week</td></tr>'
+        applications_rows = (
+            "\n".join(rows)
+            or '<tr><td colspan="7" style="text-align:center;color:#999">No applications this week</td></tr>'
+        )
 
         # Needs action section
         action_apps = [a for a in apps if a["status"] in ("needs_action", "failed")]
@@ -481,9 +499,9 @@ class ReportGenerator:
                 action_html += (
                     f'<div class="action-box">'
                     f'<strong>{app["company"]} — {app["role"]}</strong><br>'
-                    f'<small>{reason}</small><br>'
+                    f"<small>{reason}</small><br>"
                     f'<a href="{url}" target="_blank">Apply manually &rarr;</a>'
-                    f'</div>'
+                    f"</div>"
                 )
             action_html += "</div>"
             needs_action_section = action_html
@@ -508,7 +526,9 @@ class ReportGenerator:
     # File I/O
     # ------------------------------------------------------------------
 
-    def _save_html(self, user_id: int, week_start: datetime, report: Dict[str, Any]) -> str:
+    def _save_html(
+        self, user_id: int, week_start: datetime, report: Dict[str, Any]
+    ) -> str:
         """Render and save HTML report. Returns the file path."""
         user_dir = os.path.join(self.reports_dir, str(user_id))
         os.makedirs(user_dir, exist_ok=True)
@@ -534,7 +554,9 @@ class ReportGenerator:
 
         try:
             # Make a serialisable copy (exclude html/json paths to avoid circular)
-            serialisable = {k: v for k, v in report.items() if k not in ("html_path", "json_path")}
+            serialisable = {
+                k: v for k, v in report.items() if k not in ("html_path", "json_path")
+            }
             with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(serialisable, f, indent=2, default=str)
             logger.info("JSON report saved: %s", json_path)
@@ -562,11 +584,13 @@ class ReportGenerator:
             )
 
             stats = report["stats"]
-            summary_json = json.dumps({
-                "insights": report.get("insights", {}),
-                "study_plan": report.get("study_plan", []),
-                "html_path": report.get("html_path", ""),
-            })
+            summary_json = json.dumps(
+                {
+                    "insights": report.get("insights", {}),
+                    "study_plan": report.get("study_plan", []),
+                    "html_path": report.get("html_path", ""),
+                }
+            )
 
             if existing:
                 existing.total_applications = stats["total"]
@@ -615,7 +639,10 @@ class ReportGenerator:
     def _infer_role_category(role_title: str) -> str:
         """Roughly categorise a role title for insight analysis."""
         t = role_title.lower()
-        if any(x in t for x in ("ai", "ml", "machine learning", "data scientist", "nlp", "llm")):
+        if any(
+            x in t
+            for x in ("ai", "ml", "machine learning", "data scientist", "nlp", "llm")
+        ):
             return "AI/ML"
         if any(x in t for x in ("backend", "api", "server", "platform")):
             return "Backend"
@@ -625,7 +652,10 @@ class ReportGenerator:
             return "Data"
         if any(x in t for x in ("devops", "infra", "cloud", "sre", "platform")):
             return "DevOps"
-        if any(x in t for x in ("full stack", "fullstack", "software engineer", "developer")):
+        if any(
+            x in t
+            for x in ("full stack", "fullstack", "software engineer", "developer")
+        ):
             return "Full Stack"
         return "Other"
 
@@ -634,9 +664,12 @@ class ReportGenerator:
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def _run_cli() -> None:
     parser = argparse.ArgumentParser(description="Generate HireFlow weekly report")
-    parser.add_argument("--user-id", type=int, required=True, help="User ID to generate report for")
+    parser.add_argument(
+        "--user-id", type=int, required=True, help="User ID to generate report for"
+    )
     parser.add_argument(
         "--week-start",
         type=str,
@@ -648,15 +681,19 @@ def _run_cli() -> None:
     week_start: Optional[datetime] = None
     if args.week_start:
         from datetime import date
+
         d = date.fromisoformat(args.week_start)
         week_start = datetime(d.year, d.month, d.day, tzinfo=timezone.utc)
 
     from src.config.database import SessionLocal
+
     db = SessionLocal()
     try:
         gen = ReportGenerator()
-        report = gen.generate(user_id=args.user_id, db_session=db, week_start=week_start)
-        print(f"Report generated!")
+        report = gen.generate(
+            user_id=args.user_id, db_session=db, week_start=week_start
+        )
+        print("Report generated!")
         print(f"  HTML: {report.get('html_path')}")
         print(f"  JSON: {report.get('json_path')}")
         print(f"  Applications: {report['stats']['total']}")

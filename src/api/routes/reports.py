@@ -23,6 +23,7 @@ router = APIRouter(prefix="/report", tags=["reports"])
 # Response schemas
 # ---------------------------------------------------------------------------
 
+
 class StudyPlanItem(BaseModel):
     rank: int
     skill: str
@@ -83,6 +84,7 @@ class ReportMetaResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/{user_id}/latest", response_model=Dict[str, Any])
 def get_latest_report(user_id: int):
     """
@@ -106,7 +108,7 @@ def get_latest_report(user_id: int):
             raise HTTPException(
                 status_code=404,
                 detail=f"No weekly report found for user {user_id}. "
-                       "Generate one first using the report generator.",
+                "Generate one first using the report generator.",
             )
 
         # Parse summary JSON stored in the DB

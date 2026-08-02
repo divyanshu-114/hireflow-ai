@@ -3,6 +3,7 @@ from playwright.sync_api import sync_playwright
 
 logger = logging.getLogger(__name__)
 
+
 class CaptchaHandler:
     def __init__(self):
         pass
@@ -27,9 +28,9 @@ class CaptchaHandler:
                 browser.close()
         except Exception as e:
             logger.error(f"Error while checking CAPTCHA: {e}")
-            
+
         return detected
-        
+
     def detect_on_page(self, page) -> bool:
         """
         Detect CAPTCHAs on an already open Playwright Page object.
@@ -43,9 +44,9 @@ class CaptchaHandler:
             ".h-captcha",
             ".cf-turnstile",
             "img[alt*='captcha' i]",
-            "img[src*='captcha' i]"
+            "img[src*='captcha' i]",
         ]
-        
+
         try:
             for selector in captcha_selectors:
                 elements = page.locator(selector)
@@ -54,5 +55,5 @@ class CaptchaHandler:
                     return True
         except Exception as e:
             logger.debug(f"Error checking CAPTCHA selectors: {e}")
-            
+
         return False
