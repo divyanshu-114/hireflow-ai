@@ -9,11 +9,13 @@ Browse the interactive docs:
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routes.profile import router as profile_router
-from src.api.routes.weekly_plan import router as weekly_plan_router
 from src.api.routes.applications import router as applications_router
+from src.api.routes.profile import router as profile_router
 from src.api.routes.reports import router as reports_router
+from src.api.routes.weekly_plan import router as weekly_plan_router
+from src.config.settings import get_settings
 
 app = FastAPI(
     title="HireFlow AI API",
@@ -25,6 +27,24 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# --------------------------------------------------------------------------- #
+# CORS — allow the frontend dev server (http://localhost:3000) to call the API
+# --------------------------------------------------------------------------- #
+
+_settings = get_settings()
+app.add_middleware(
+    CORSMiddleware,
+    # Comma-separated in .env (e.g. ALLOWED_ORIGINS=http://localhost:3000)
+    allow_origins=[
+        origin.strip()
+        for origin in _settings.ALLOWED_ORIGINS.split(",")
+        if origin.strip()
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --------------------------------------------------------------------------- #
