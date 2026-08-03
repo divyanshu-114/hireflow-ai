@@ -26,6 +26,73 @@ router = APIRouter(prefix="/weekly-plan", tags=["weekly-plan"])
 
 
 # ------------------------------------------------------------------ #
+# GET /weekly-plan/{user_id}/alternatives  —  READ-ONLY
+# ------------------------------------------------------------------ #
+# The frontend's "add the next ranked alternative" flow needs to know
+# which scored jobs are available to swap in. The swap endpoint requires
+# an explicit add_job_id from the client, so this endpoint exposes the
+# candidate pool: applications scored for the user (status="pending")
+# that are NOT currently planned this cycle, ordered by rank.
+# ------------------------------------------------------------------ #
+
+
+@router.get("/{user_id}/alternatives")
+def get_plan_alternatives(user_id: int):
+    """List scored jobs available to swap into the weekly plan.
+
+    READ-ONLY. Returns pending scored applications that are not already
+    part of the current cycle's plan, best rank first.
+
+    Args:
+        user_id: Database ID of the user.
+
+    Returns:
+        Dict with user_id, cycle_start, alternatives (standard plan dict
+        shape) and total_count.
+    """
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=404, detail=f"User {user_id} not found.")
+
+        cycle_monday = _current_week_monday()
+
+        planned_ids = {
+            row[0]
+            for row in db.query(Application.job_id)
+            .filter(
+                Application.user_id == user_id,
+                Application.status == "planned",
+                Application.cycle_start_date == cycle_monday,
+            )
+            .all()
+        }
+
+        pending_apps = (
+            db.query(Application)
+            .filter(
+                Application.user_id == user_id,
+                Application.status == "pending",
+            )
+            .order_by(Application.rank)
+            .all()
+        )
+
+        alternatives = [app for app in pending_apps if app.job_id not in planned_ids]
+
+        return {
+            "user_id": user_id,
+            "cycle_start": str(cycle_monday),
+            "alternatives": QuotaSelector._applications_to_dicts(alternatives, db),
+            "total_count": len(alternatives),
+        }
+
+    finally:
+        db.close()
+
+
+# ------------------------------------------------------------------ #
 # GET /weekly-plan/{user_id}  —  READ-ONLY
 # ------------------------------------------------------------------ #
 # The GET endpoint MUST NEVER mutate the database. It follows this

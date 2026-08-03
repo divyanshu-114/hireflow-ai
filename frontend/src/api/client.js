@@ -127,3 +127,69 @@ export async function getProfile(userId) {
   const { data } = await api.get(`/profile/${userId}`)
   return data
 }
+
+/**
+ * Fetch (or lazily generate) the current weekly plan for a user.
+ *
+ * Batch mode returns the whole plan; individual mode paginates one job
+ * per page — pass `page` for the latter.
+ */
+export async function getWeeklyPlan(userId, page = null) {
+  const { data } = await api.get(`/weekly-plan/${userId}`, {
+    params: page ? { page } : undefined,
+  })
+  return data
+}
+
+/**
+ * Confirm the weekly plan — the safety gate. Only confirmed jobs trigger
+ * resume generation; removed job ids are submitted here, not via swap.
+ */
+export async function confirmWeeklyPlan(userId, confirmedJobIds, removedJobIds = []) {
+  const { data } = await api.post(`/weekly-plan/${userId}/confirm`, {
+    confirmed_job_ids: confirmedJobIds,
+    removed_job_ids: removedJobIds,
+  })
+  return data
+}
+
+/** Swap one planned job for a scored alternative (combined remove + add). */
+export async function swapJob(userId, removeJobId, addJobId) {
+  const { data } = await api.post(`/weekly-plan/${userId}/swap`, {
+    remove_job_id: removeJobId,
+    add_job_id: addJobId,
+  })
+  return data
+}
+
+/**
+ * Fetch scored-but-not-planned jobs for a user — the candidate pool for
+ * the "add the next ranked alternative" swap flow.
+ */
+export async function getPlanAlternatives(userId) {
+  const { data } = await api.get(`/weekly-plan/${userId}/alternatives`)
+  return data
+}
+
+/**
+ * Fetch a user's applications, optionally filtered by status.
+ *
+ * The `status` query param is omitted entirely when no filter is given
+ * (matching the backend contract).
+ */
+export async function getApplications(userId, statusFilter = null) {
+  const { data } = await api.get(`/applications/${userId}`, {
+    params: statusFilter ? { status: statusFilter } : undefined,
+  })
+  return data
+}
+
+/**
+ * Construct the URL for an application's generated resume PDF.
+ *
+ * Not an axios call — this is used directly as an <iframe src>, so the
+ * browser streams the PDF from the backend route.
+ */
+export function getResumePreviewUrl(userId, jobId) {
+  return `${API_BASE_URL}/applications/${userId}/${jobId}/resume`
+}

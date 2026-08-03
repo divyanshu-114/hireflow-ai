@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import ProfilePage from './ProfilePage.jsx'
 import { createProfile } from '../api/client.js'
 
@@ -9,13 +10,22 @@ vi.mock('../api/client.js', () => ({
   getProfile: vi.fn(),
 }))
 
+// ProfilePage uses useNavigate (Issue 24) — it must render inside a Router.
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <ProfilePage />
+    </MemoryRouter>,
+  )
+}
+
 describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('renders without crashing and shows all required fields', () => {
-    render(<ProfilePage />)
+    renderPage()
 
     expect(screen.getByRole('heading', { name: /set up your profile/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument()
@@ -31,7 +41,7 @@ describe('ProfilePage', () => {
 
   it('shows inline validation errors when required fields are missing', async () => {
     const user = userEvent.setup()
-    render(<ProfilePage />)
+    renderPage()
 
     await user.click(screen.getByRole('button', { name: /save profile/i }))
 
@@ -43,7 +53,7 @@ describe('ProfilePage', () => {
 
   it('rejects an invalid email format', async () => {
     const user = userEvent.setup()
-    render(<ProfilePage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/full name/i), 'Ada Lovelace')
     await user.type(screen.getByLabelText(/email address/i), 'not-an-email')
@@ -63,7 +73,7 @@ describe('ProfilePage', () => {
       mode: 'internship',
       weekly_quota: 10,
     })
-    render(<ProfilePage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/full name/i), 'Ada Lovelace')
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com')
@@ -97,7 +107,7 @@ describe('ProfilePage', () => {
   })
 
   it('rejects a non-PDF resume file with an inline error', async () => {
-    render(<ProfilePage />)
+    renderPage()
 
     const input = screen.getByLabelText(/resume/i)
     const badFile = new File(['hello'], 'resume.txt', { type: 'text/plain' })
@@ -109,7 +119,7 @@ describe('ProfilePage', () => {
 
   it('rejects a weekly quota outside the 1-20 range', async () => {
     const user = userEvent.setup()
-    render(<ProfilePage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/full name/i), 'Ada Lovelace')
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com')
@@ -130,7 +140,7 @@ describe('ProfilePage', () => {
         status: 400,
       }),
     )
-    render(<ProfilePage />)
+    renderPage()
 
     await user.type(screen.getByLabelText(/full name/i), 'Ada Lovelace')
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com')
