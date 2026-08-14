@@ -3,7 +3,7 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import WeeklyPlanPage from './pages/WeeklyPlanPage.jsx'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import PrepGuidePage from './pages/PrepGuidePage.jsx'
-import ResumesPage from './pages/ResumesPage.jsx'
+import ResumeLibraryPage from './pages/ResumeLibraryPage.jsx'
 
 const NAV = [
   { label: 'Profile', to: '/profile', end: true },
@@ -88,7 +88,7 @@ function App() {
           <Route path="/weekly-plan" element={<WeeklyPlanPage />} />
           <Route path="/applications" element={<ApplicationsPage />} />
           <Route path="/prep-guide/:id" element={<PrepGuidePage />} />
-          <Route path="/resumes" element={<ResumesPage />} />
+          <Route path="/resumes" element={<ResumeLibraryPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

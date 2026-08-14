@@ -1,7 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App.jsx'
+
+// The prep-guide route now fetches real data — stub the API client so the
+// routing test stays network-free. Defaults: prep guide 404s (expected,
+// friendly state) and the resume library is empty.
+vi.mock('./api/client.js', () => ({
+  getPrepGuide: vi.fn(() =>
+    Promise.reject(Object.assign(new Error('Prep guide not ready yet.'), { status: 404 })),
+  ),
+  getResumeLibrary: vi.fn(() => Promise.resolve([])),
+  getResumeDownloadUrl: vi.fn(() => ''),
+}))
 
 function renderAt(path) {
   return render(
@@ -30,13 +41,14 @@ describe('App routing (acceptance criteria: all 5 routes)', () => {
     expect(screen.getByText(/create your profile/i)).toBeInTheDocument()
   })
 
-  it('renders the prep guide stub with the :id route param at /prep-guide/42', () => {
+  it('renders the prep guide page at /prep-guide/:id', () => {
     renderAt('/prep-guide/42')
-    expect(screen.getByRole('heading', { name: /prep guide #42/i })).toBeInTheDocument()
-    expect(screen.getByText(/route param :id = 42/i)).toBeInTheDocument()
+    // The page fetches on mount; it renders its header while loading/failing
+    // rather than the old stub text.
+    expect(screen.getByRole('heading', { name: /prep guide/i })).toBeInTheDocument()
   })
 
-  it('renders the resumes stub at /resumes', () => {
+  it('renders the resume library at /resumes', () => {
     renderAt('/resumes')
     expect(screen.getByRole('heading', { name: /resume library/i })).toBeInTheDocument()
   })

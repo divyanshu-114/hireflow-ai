@@ -193,3 +193,32 @@ export async function getApplications(userId, statusFilter = null) {
 export function getResumePreviewUrl(userId, jobId) {
   return `${API_BASE_URL}/applications/${userId}/${jobId}/resume`
 }
+
+/**
+ * Fetch the full prep guide for an application (rounds, topics, mock
+ * questions, resources, company intel).
+ */
+export async function getPrepGuide(applicationId) {
+  const { data } = await api.get(`/prep-guide/${applicationId}`)
+  return data
+}
+
+/**
+ * Fetch a user's resume library — every generated resume with display
+ * context (company, role, version, date). The backend deliberately omits
+ * server-side file paths.
+ */
+export async function getResumeLibrary(userId) {
+  const { data } = await api.get(`/applications/${userId}/resumes`)
+  return data
+}
+
+/**
+ * Construct the URL used to download a resume's PDF.
+ *
+ * Not an axios call — this is used directly as the download link target
+ * (the backend sets Content-Disposition with the versioned filename).
+ */
+export function getResumeDownloadUrl(userId, jobId) {
+  return `${API_BASE_URL}/applications/${userId}/${jobId}/resume`
+}

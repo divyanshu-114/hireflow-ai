@@ -92,12 +92,18 @@ def get_user_applications(
 # ---------------------------------------------------------------------- #
 
 
-def _sanitize_resume_filename(company_name: str, role_title: str) -> str:
+def _sanitize_resume_filename(
+    company_name: str, role_title: str, version: Optional[int] = None
+) -> str:
     """Build a filesystem/header-safe filename for the resume PDF.
 
     Content-Disposition filenames must be single-line ASCII — replace any
     character outside ``[A-Za-z0-9._-]`` with an underscore and collapse
     runs, falling back to ``resume.pdf`` if nothing usable remains.
+
+    When a resume_version is available the filename follows the library
+    convention ``{Company}_{Role}_v{N}.pdf`` (Issue 25 acceptance
+    criteria); otherwise it degrades to ``{Company}_{Role}_resume.pdf``.
     """
     company = (company_name or "").strip()
     role = (role_title or "").strip()
@@ -107,7 +113,11 @@ def _sanitize_resume_filename(company_name: str, role_title: str) -> str:
     raw = f"{company or 'company'}_{role or 'role'}"
     cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", raw)
     cleaned = re.sub(r"_+", "_", cleaned).strip("_.-")
-    return f"{cleaned}_resume.pdf" if cleaned else "resume.pdf"
+    if not cleaned:
+        return "resume.pdf"
+
+    suffix = f"_v{int(version)}" if version else "_resume"
+    return f"{cleaned}{suffix}.pdf"
 
 
 @router.get("/{user_id}/{job_id}/resume")
@@ -169,6 +179,66 @@ def get_application_resume(
     return FileResponse(
         pdf_path,
         media_type="application/pdf",
-        filename=_sanitize_resume_filename(job.company_name, job.role_title),
+        filename=_sanitize_resume_filename(
+            job.company_name, job.role_title, app.resume_version
+        ),
         content_disposition_type="inline",
     )
+
+
+# ---------------------------------------------------------------------- #
+# GET /applications/{user_id}/resumes  —  list a user's resume library
+# ---------------------------------------------------------------------- #
+# Issue 25: the resume library needs a LIST of every generated resume for
+# a user (company, role, version, date) so the frontend can render a
+# library page. The server-side resume_path is deliberately NOT returned —
+# the frontend builds download links from the public single-file route
+# above instead, so file paths never leak to the browser.
+# ---------------------------------------------------------------------- #
+
+
+@router.get("/{user_id}/resumes")
+def get_user_resumes(user_id: int, db: Session = Depends(get_db)):
+    """List every generated resume for a user (resume library).
+
+    Returns one entry per Application row that has a resume_path, joined
+    with the Job for display context. Rows without a generated resume are
+    excluded entirely.
+
+    Raises:
+        HTTPException 404: if the user has no application rows at all.
+    """
+    rows = (
+        db.query(Application, Job)
+        .join(Job, Application.job_id == Job.id)
+        .filter(
+            Application.user_id == user_id,
+            Application.resume_path.isnot(None),
+            Application.resume_path != "",
+        )
+        .order_by(Application.created_at.desc())
+        .all()
+    )
+
+    if not rows:
+        # Check the user actually exists so a typo'd id gets a 404 rather
+        # than a confusing empty list.
+        from src.models.user import User
+
+        user_exists = db.query(User).filter(User.id == user_id).first()
+        if user_exists is None:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found.",
+            )
+
+    return [
+        {
+            "job_id": app.job_id,
+            "company_name": job.company_name,
+            "role_title": job.role_title,
+            "resume_version": app.resume_version,
+            "created_at": app.created_at,
+        }
+        for app, job in rows
+    ]

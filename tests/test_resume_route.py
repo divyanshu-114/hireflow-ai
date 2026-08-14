@@ -164,7 +164,8 @@ def test_returns_pdf_when_resume_exists(client: TestClient, seeded_db, tmp_path)
     assert response.headers["content-type"].startswith("application/pdf")
     disposition = response.headers["content-disposition"]
     assert "inline" in disposition
-    assert "LangChain_Labs_AI_Engineer_Intern_resume.pdf" in disposition
+    # Issue 25: the library convention is {Company}_{Role}_v{N}.pdf.
+    assert "LangChain_Labs_AI_Engineer_Intern_v1.pdf" in disposition
     assert response.content == b"%PDF-1.4 fake resume content"
 
 
